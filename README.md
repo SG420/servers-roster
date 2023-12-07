@@ -38,7 +38,7 @@ from the directory it is saved in (from the same terminal as before) using:
 ```
 python3 roster.py 
 ```
-
+Depending on your Python installation, you may have to run `python` instead of `python3`
 By default, 4 rosters (weeks) will be generated, for each week, you will be
 asked if you would like to exclude someone from the roster for that week.
 When prompted, one at a time, you can put the names of servers to exclude for
