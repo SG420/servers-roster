@@ -17,11 +17,13 @@ def read_candidates(candidate_file="servers.csv"):
         reader = csv.reader(csv_file)
         candidates = {}
         for row in reader:
+            # remove whitespace
+            row = [x.strip() for x in row]
             # save the candidates in a dictionary
-            candidates[row[0]] = set(row[1:])
+            candidates[row[0]] = frozenset(row[1:])
     return candidates
 
-def choose_server(temp_candidates: set, week_servers: dict, all_candidates: set, exclude_servers: list):
+def choose_server(temp_candidates: set, week_servers: dict, all_candidates: frozenset, exclude_servers: list):
     '''
     Select a server from the candidates
     Parameters:
@@ -30,29 +32,27 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: set,
         all_candidates - all the possible people who can be the role
         exclude_servers - anyone to exclude from this round of selection
     '''
-    # check if temp_th is empty (meaning all possible servers have been used),
-    # and reset it if it is
+    # check if temp_candidates is empty and reset if it is 
+    print("Excluded servers: ", exclude_servers)
     if not temp_candidates:
-        temp_candidates = set(all_candidates)      
-    # choose a random server
-    week_server = random.choice(list(temp_candidates)) # check there is at least 1 eligible server
-    if (all(value in week_servers.values() for value in all_candidates)):
-        # if all the servers in TH are already assigned in week_servers
-        raise ValueError("No servers without another role are available to be this role")
-    # check if the person already has a role
-    if not exclude_servers:
-        exclude_servers = []
-    if week_server in week_servers.values() or week_server in exclude_servers:
-        # temporarily remove them from temp_candidates, then select a new server
-        # from the reduced list
-        temp2_candidates = temp_candidates.copy()
-        temp2_candidates.remove(week_server)
-        # get a new person
-        try:
-            week_server = choose_server(temp2_candidates, week_servers, all_candidates, exclude_servers)
-        except RecursionError:
-            raise ValueError("No servers without another role are available")
-    # remove the chosen person from the set
+        print("No temp candidates, resetting")
+        temp_candidates = set(all_candidates.difference(exclude_servers))
+        print(temp_candidates)
+    # remove all servers in exclude_servers from temp_candidates and
+    # all_candidates
+    try:
+        if exclude_servers:
+            temp_candidates.difference_update(exclude_servers)
+        # remove all servers in week_servers from temp_candidates and all_candidates
+        temp_candidates.difference_update(week_servers.values())
+        # choose a random server
+        week_server = random.choice(list(temp_candidates)) # check there is at least 1 eligible server
+    except IndexError:
+        return "NA" # no server available
+    except TypeError: 
+        return "NA" # no server avialable
+    except AttributeError:
+        return "NA" # no server available
     temp_candidates.discard(week_server)
     # return the person
     return week_server
