@@ -3,8 +3,14 @@ A simple Python script to generate a servers roster based on a CSV file
 specifying the available servers
 
 ## Setup & Usage
-First, ensure you have Python installed and in your path.
-Create a file called `servers.csv`, and enter the names of the servers who you
+First, ensure you have [Python](https://www.python.org/) installed and added to your path. You will also need to install
+[Git](https://git-scm.com/) if you haven't already, to download the files.
+Next, open a terminal and run:
+```
+git clone https://github.com/SG420/servers-roster.git
+cd servers-roster
+```
+Next, create a file called `servers.csv`, and enter the names of the servers who you
 want to be included on the roster for each role. Separate each server with a
 comma. MC, TH, AC1, AC2 and CB must be put in that order, any additional
 optional roles can also be included, but don't have to be. Optional roles will
@@ -28,10 +34,11 @@ you include more than 2 TB roles, e.g TB3 and TB4, it is possible it will roster
 an odd-number of torch bearers, and you will have to manually adjust the roster)
 
 Once you have specified who is to be included on the roster, run the script
-from the directory it is saved in using
+from the directory it is saved in (from the same terminal as before) using:
 ```
 python3 roster.py 
 ```
+
 By default, 4 rosters (weeks) will be generated, for each week, you will be
 asked if you would like to exclude someone from the roster for that week.
 When prompted, one at a time, you can put the names of servers to exclude for
