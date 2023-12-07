@@ -33,20 +33,18 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
         exclude_servers - anyone to exclude from this round of selection
     '''
     # check if temp_candidates is empty and reset if it is 
-    print("Excluded servers: ", exclude_servers)
     if not temp_candidates:
-        print("No temp candidates, resetting")
-        temp_candidates = set(all_candidates.difference(exclude_servers))
-        print(temp_candidates)
+        temp_candidates = set(all_candidates)
     # remove all servers in exclude_servers from temp_candidates and
     # all_candidates
     try:
+        eligble_candidates = set(temp_candidates)
         if exclude_servers:
-            temp_candidates.difference_update(exclude_servers)
+            eligble_candidates.difference_update(exclude_servers)
         # remove all servers in week_servers from temp_candidates and all_candidates
-        temp_candidates.difference_update(week_servers.values())
+        eligble_candidates.difference_update(week_servers.values())
         # choose a random server
-        week_server = random.choice(list(temp_candidates)) # check there is at least 1 eligible server
+        week_server = random.choice(list(eligble_candidates)) # check there is at least 1 eligible server
     except IndexError:
         return "NA" # no server available
     except TypeError: 
@@ -122,7 +120,6 @@ def generate_roster(exclude_servers={}, weeks=NUM_WEEKS):
         for role in other_roles:
             candidates_for_role = candidates.get(role, [])
             if any(candidate not in week_servers.values() for candidate in candidates_for_role):
-                print("Generating for " + role)
                 week_server = choose_server(
                     set(candidates_for_role),
                     week_servers,
@@ -238,7 +235,7 @@ def ask_excluded():
 
 if __name__ == "__main__":
     excluded_servers = ask_excluded()
-    print(excluded_servers)
+    print("Excluded Servers:", excluded_servers)
     rosters = generate_roster(excluded_servers)
     print_rosters(rosters)
     file_name = input("Enter the name to save the roster as, or leave blank to skip: ")
