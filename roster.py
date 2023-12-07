@@ -2,7 +2,7 @@ import random
 import csv
 roles = ["MC", "TH", "AC1", "AC2", "CB"]
 # Define who can do each role
-NUM_WEEKS = 4 # number of weeks to generate a roster for
+NUM_WEEKS = 8 # number of weeks to generate a roster for
 
 def read_candidates(candidate_file="servers.csv"):
     '''
@@ -33,25 +33,40 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
         exclude_servers - anyone to exclude from this round of selection
     '''
     # check if temp_candidates is empty and reset if it is 
+    debugTempreset = False
+    if len(all_candidates) == 3:
+        print(temp_candidates)
     if not temp_candidates:
-        temp_candidates = set(all_candidates)
+        debugTempreset = True
+        temp_candidates.update(all_candidates)
+
     # remove all servers in exclude_servers from temp_candidates and
     # all_candidates
-    try:
-        eligble_candidates = set(temp_candidates)
+    eligble_candidates = set(temp_candidates)
+    if exclude_servers:
+        eligble_candidates.difference_update(exclude_servers)
+    # remove all servers in week_servers from temp_candidates and all_candidates
+    eligble_candidates.difference_update(week_servers.values())
+    # if there are no eligible candidates, update eligible candidates to be
+    # all_candidates - exclude_servers
+    debugReset = False
+    if not eligble_candidates:
+        debugReset = True
+        eligble_candidates = set(all_candidates)
         if exclude_servers:
             eligble_candidates.difference_update(exclude_servers)
-        # remove all servers in week_servers from temp_candidates and all_candidates
         eligble_candidates.difference_update(week_servers.values())
-        # choose a random server
-        week_server = random.choice(list(eligble_candidates)) # check there is at least 1 eligible server
-    except IndexError:
-        return "NA" # no server available
-    except TypeError: 
-        return "NA" # no server avialable
-    except AttributeError:
-        return "NA" # no server available
+    # if there are stil none, return NA
+    if not eligble_candidates:
+        return "NA"
+    # choose a random server
+    week_server = random.choice(list(eligble_candidates))
+
     temp_candidates.discard(week_server)
+    if debugReset:
+        week_server += "[RST]"
+    if debugTempreset:
+        week_server += "[TMPRST]"
     # return the person
     return week_server
  
