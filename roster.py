@@ -63,10 +63,10 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
     week_server = random.choice(list(eligble_candidates))
 
     temp_candidates.discard(week_server)
-    if debugReset:
-        week_server += "[RST]"
-    if debugTempreset:
-        week_server += "[TMPRST]"
+    #if debugReset:
+    #    week_server += "[RST]"
+    #if debugTempreset:
+    #    week_server += "[TMPRST]"
     # return the person
     return week_server
  
@@ -161,6 +161,8 @@ def print_rosters(rosters):
     '''
     i = 0
     for week_servers in rosters:
+        if len(week_servers.values()) != len(set(week_servers.values())):
+            raise ValueError("Duplicate server in roster")
         i+=1
         print("Week " + str(i) + ":")
         for role in roles:
