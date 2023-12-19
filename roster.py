@@ -1,8 +1,9 @@
 import random
 import csv
+import argparse
 roles = ["MC", "TH", "AC1", "AC2", "CB"]
 # Define who can do each role
-NUM_WEEKS = 8 # number of weeks to generate a roster for
+NUM_WEEKS = 4 # number of weeks to generate a roster for
 
 def read_candidates(candidate_file="servers.csv"):
     '''
@@ -33,11 +34,9 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
         exclude_servers - anyone to exclude from this round of selection
     '''
     # check if temp_candidates is empty and reset if it is 
-    debugTempreset = False
-    if len(all_candidates) == 3:
+    if debug and len(all_candidates) == 3:
         print(temp_candidates)
     if not temp_candidates:
-        debugTempreset = True
         temp_candidates.update(all_candidates)
 
     # remove all servers in exclude_servers from temp_candidates and
@@ -49,9 +48,7 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
     eligble_candidates.difference_update(week_servers.values())
     # if there are no eligible candidates, update eligible candidates to be
     # all_candidates - exclude_servers
-    debugReset = False
     if not eligble_candidates:
-        debugReset = True
         eligble_candidates = set(all_candidates)
         if exclude_servers:
             eligble_candidates.difference_update(exclude_servers)
@@ -63,10 +60,6 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
     week_server = random.choice(list(eligble_candidates))
 
     temp_candidates.discard(week_server)
-    #if debugReset:
-    #    week_server += "[RST]"
-    #if debugTempreset:
-    #    week_server += "[TMPRST]"
     # return the person
     return week_server
  
@@ -83,6 +76,7 @@ def generate_roster(exclude_servers={}, weeks=NUM_WEEKS):
     the week number (starting at 0), and the value should be a dictionary where
     the key is the role, and the value is a list of servers
     '''
+    print("Generating ", NUM_WEEKS, " rosters")
     candidates = read_candidates()
     MC = candidates.get("MC")
     TH = candidates.get("TH")
@@ -142,7 +136,7 @@ def generate_roster(exclude_servers={}, weeks=NUM_WEEKS):
                     []
                 )
                 week_servers[role] = week_server
-            else:
+            elif debug:
                 print("Nobody available for " + role)
             # check if TB1 has been added but not TB2
         if "TB1" in week_servers and "TB2" not in week_servers:
@@ -251,9 +245,24 @@ def ask_excluded():
             
 
 if __name__ == "__main__":
-    excluded_servers = ask_excluded()
-    print("Excluded Servers:", excluded_servers)
-    rosters = generate_roster(excluded_servers)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--weeks', type=int, help="Number of weeks to generate a roster for")
+    parser.add_argument('--no-skips', action="store_true", help="Skips asking for servers to skip")
+    parser.add_argument('--verbose', action="store_true", help="Shows debug messages")
+    args = parser.parse_args()
+    global debug
+    debug = args.verbose
+    if args.weeks:
+        if debug:
+            print("Setting num weeks to " + str(args.weeks))
+        NUM_WEEKS = args.weeks
+    if args.no_skips:
+        excluded_servers = {}
+    else:
+        excluded_servers = ask_excluded()
+    if debug:
+        print("Excluded Servers:", excluded_servers)
+    rosters = generate_roster(excluded_servers, NUM_WEEKS)
     print_rosters(rosters)
     file_name = input("Enter the name to save the roster as, or leave blank to skip: ")
     if file_name == "" or file_name == " ":
