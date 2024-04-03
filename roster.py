@@ -2,6 +2,7 @@ import random
 import csv
 import argparse
 roles = ["MC", "TH", "AC1", "AC2", "CB"]
+UNAVAILABLE_MC = ""
 # Define who can do each role
 NUM_WEEKS = 4 # number of weeks to generate a roster for
 
@@ -48,7 +49,7 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
     eligble_candidates.difference_update(week_servers.values())
     # if there are no eligible candidates, update eligible candidates to be
     # all_candidates - exclude_servers
-    if not eligble_candidates:
+    if not eligble_candidates: 
         eligble_candidates = set(all_candidates)
         if exclude_servers:
             eligble_candidates.difference_update(exclude_servers)
@@ -65,7 +66,7 @@ def choose_server(temp_candidates: set, week_servers: dict, all_candidates: froz
  
 
 
-def generate_roster(exclude_servers={}, weeks=NUM_WEEKS):
+def generate_roster(exclude_servers={}, weeks=NUM_WEEKS, swap_mc=False):
     '''
     Generates roster for a number of weeks specified (default 4)
     Parameters:
@@ -98,16 +99,30 @@ def generate_roster(exclude_servers={}, weeks=NUM_WEEKS):
         else:
            excluded = exclude_servers.get(week)
         week_servers = dict()
-        # select a MC
-        week_MC = choose_server(temp_MC, week_servers, MC, excluded.get("MC"))       
-        # add the person to the dictionary
-        week_servers["MC"] = week_MC
+        valid_MC = False
+        while not valid_MC:
+            # select a MC
+            week_MC = choose_server(temp_MC, week_servers, MC, excluded.get("MC"))       
+            # add the person to the dictionary
+            week_servers["MC"] = week_MC
 
-        # select a TH
-        week_TH = choose_server(temp_TH, week_servers, TH, excluded.get("TH"))
-        # add the person to the dictionary
-        week_servers["TH"] = week_TH
-    
+            # select a TH
+            week_TH = choose_server(temp_TH, week_servers, TH, excluded.get("TH"))
+            # add the person to the dictionary
+            week_servers["TH"] = week_TH
+            # swap MC and TH if I am MC
+            if swap_mc:
+                if week_servers["MC"] == UNAVAILABLE_MC:
+                    if week_servers["TH"] in MC:
+                        week_servers["MC"] = week_servers["TH"]
+                        week_servers["TH"] = UNAVAILABLE_MC
+                        temp_MC.discard(UNAVAILABLE_MC)
+                        valid_MC = True
+                else:
+                    valid_MC = True
+            else:
+                valid_MC = True
+
         # select an AC1
         week_AC1 = choose_server(temp_AC1, week_servers, AC1, excluded.get("AC1"))
         # add the person to the dictionary
@@ -249,6 +264,7 @@ if __name__ == "__main__":
     parser.add_argument('--weeks', type=int, help="Number of weeks to generate a roster for")
     parser.add_argument('--no-skips', action="store_true", help="Skips asking for servers to skip")
     parser.add_argument('--verbose', action="store_true", help="Shows debug messages")
+    parser.add_argument('--swap-mc', action="store_true", help="Shows debug messages")
     args = parser.parse_args()
     global debug
     debug = args.verbose
@@ -262,7 +278,7 @@ if __name__ == "__main__":
         excluded_servers = ask_excluded()
     if debug:
         print("Excluded Servers:", excluded_servers)
-    rosters = generate_roster(excluded_servers, NUM_WEEKS)
+    rosters = generate_roster(excluded_servers, NUM_WEEKS, args.swap_mc)
     print_rosters(rosters)
     file_name = input("Enter the name to save the roster as, or leave blank to skip: ")
     if file_name == "" or file_name == " ":
